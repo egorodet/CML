@@ -196,14 +196,16 @@ class vector<Element, external<Size>>
 
 #ifdef CML_HAS_STRUCTURED_BINDINGS
 template<typename E, int Size>
-struct std::tuple_size<cml::vector<E, cml::external<Size>>>
+class std::tuple_size<cml::vector<E, cml::external<Size>>>
 {
+public:
   static const int value = Size;
 };
 
 template<std::size_t I, typename E, int Size>
-struct std::tuple_element<I, cml::vector<E, cml::external<Size>>>
+class std::tuple_element<I, cml::vector<E, cml::external<Size>>>
 {
+public:
   using type = cml::value_type_of_t<cml::vector<E, cml::external<Size>>>;
 };
 #endif
