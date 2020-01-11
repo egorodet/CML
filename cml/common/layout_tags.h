@@ -88,6 +88,48 @@ template<class T> struct layout_tag_trait_of {
 template<class T>
   using layout_tag_trait_of_t = typename layout_tag_trait_of<T>::type;
 
+/** Helper to detect row major layout types. */
+template<class T> struct is_row_major {
+  static const bool value = std::is_same<layout_tag_trait_of_t<T>, row_major>::value;
+};
+
+/** Wrapper for enable_if to detect types tagged with row_major. */
+template<class Sub, class T = void> struct enable_if_row_major
+: std::enable_if<is_row_major<Sub>::value, T> {};
+
+/** Wrapper for enable_if to detect types not tagged with row_major. */
+template<class Sub, class T = void> struct enable_if_not_row_major
+: std::enable_if<!is_row_major<Sub>::value, T> {};
+
+/** Convenience alias for enable_if_row_major. */
+template<class Sub, class T = void> using enable_if_row_major_t
+= typename enable_if_row_major<Sub, T>::type;
+
+/** Convenience alias for enable_if_not_row_major. */
+template<class Sub, class T = void> using enable_if_not_row_major_t
+= typename enable_if_not_row_major<Sub, T>::type;
+
+/** Helper to detect column major layout types. */
+template<class T> struct is_col_major {
+  static const bool value = std::is_same<layout_tag_trait_of_t<T>, col_major>::value;
+};
+
+/** Wrapper for enable_if to detect types tagged with col_major. */
+template<class Sub, class T = void> struct enable_if_col_major
+: std::enable_if<is_col_major<Sub>::value, T> {};
+
+/** Wrapper for enable_if to detect types not tagged with col_major. */
+template<class Sub, class T = void> struct enable_if_not_col_major
+: std::enable_if<!is_col_major<Sub>::value, T> {};
+
+/** Convenience alias for enable_if_col_major. */
+template<class Sub, class T = void> using enable_if_col_major_t
+= typename enable_if_col_major<Sub, T>::type;
+
+/** Convenience alias for enable_if_not_col_major. */
+template<class Sub, class T = void> using enable_if_not_col_major_t
+= typename enable_if_not_col_major<Sub, T>::type;
+
 } // namespace cml
 
 #endif

@@ -69,10 +69,17 @@ template<class T> struct is_row_basis {
 template<class Sub, class T = void> struct enable_if_row_basis
 : std::enable_if<is_row_basis<Sub>::value, T> {};
 
+/** Wrapper for enable_if_not to detect types not tagged with row_basis. */
+template<class Sub, class T = void> struct enable_if_not_row_basis
+: std::enable_if<!is_row_basis<Sub>::value, T> {};
+
 /** Convenience alias for enable_if_row_basis. */
 template<class Sub, class T = void> using enable_if_row_basis_t
   = typename enable_if_row_basis<Sub, T>::type;
 
+/** Convenience alias for enable_if_not_row_basis. */
+template<class Sub, class T = void> using enable_if_not_row_basis_t
+  = typename enable_if_not_row_basis<Sub, T>::type;
 
 /** Helper to detect column basis types. */
 template<class T> struct is_col_basis {
@@ -83,10 +90,17 @@ template<class T> struct is_col_basis {
 template<class Sub, class T = void> struct enable_if_col_basis
 : std::enable_if<is_col_basis<Sub>::value, T> {};
 
+/** Wrapper for enable_if to detect types not tagged with col_basis. */
+template<class Sub, class T = void> struct enable_if_not_col_basis
+: std::enable_if<!is_col_basis<Sub>::value, T> {};
+
 /** Convenience alias for enable_if_col_basis. */
 template<class Sub, class T = void> using enable_if_col_basis_t
   = typename enable_if_col_basis<Sub, T>::type;
 
+/** Convenience alias for enable_if_not_col_basis. */
+template<class Sub, class T = void> using enable_if_not_col_basis_t
+  = typename enable_if_not_col_basis<Sub, T>::type;
 
 /** Helper to detect arbitrary basis types. */
 template<class T> struct is_any_basis {

@@ -85,6 +85,14 @@ template<class Sub, class T = void> struct enable_if_fixed_size
 template<class Sub, class T = void> using enable_if_fixed_size_t
   = typename enable_if_fixed_size<Sub, T>::type;
 
+/** Wrapper for enable_if to detect types tagged with fixed_size_tag. */
+template<class Sub, class T = void> struct enable_if_not_fixed_size
+    : std::enable_if<!is_fixed_size<Sub>::value, T> {};
+
+/** Convenience alias for enable_if_not_fixed_size. */
+template<class Sub, class T = void> using enable_if_not_fixed_size_t
+= typename enable_if_not_fixed_size<Sub, T>::type;
+
 
 /** Helper to detect dynamic-size types. */
 template<class T> struct is_dynamic_size {
