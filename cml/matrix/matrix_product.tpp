@@ -112,30 +112,6 @@ inline matrix44f_r operator*<>(matrix44f_r& left, matrix44f_r& right)
     return multiply_matrix_float_fixed_row_order<4, 4>(left, right);
 }
 
-template<>
-inline matrix33f_r operator*<>(const matrix33f_r& left, const matrix33f_r& right)
-{
-    return multiply_matrix_float_fixed_row_order<3, 3>(left, right);
-}
-
-template<>
-inline matrix33f_r operator*<>(matrix33f_r& left, const matrix33f_r& right)
-{
-    return multiply_matrix_float_fixed_row_order<3, 3>(left, right);
-}
-
-template<>
-inline matrix33f_r operator*<>(const matrix33f_r& left, matrix33f_r& right)
-{
-    return multiply_matrix_float_fixed_row_order<3, 3>(left, right);
-}
-
-template<>
-inline matrix33f_r operator*<>(matrix33f_r& left, matrix33f_r& right)
-{
-    return multiply_matrix_float_fixed_row_order<3, 3>(left, right);
-}
-
 } // namespace cml
 
 // -------------------------------------------------------------------------
