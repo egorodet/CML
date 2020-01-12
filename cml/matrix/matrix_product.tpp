@@ -15,11 +15,12 @@
 
 namespace cml {
 
-template<class Sub1, class Sub2>
-using matrix_product_t = matrix_inner_product_promote_t<actual_operand_type_of_t<Sub1>, actual_operand_type_of_t<Sub2>>;
+template<class LeftMatrix, class RightMatrix>
+using matrix_product_t = matrix_inner_product_promote_t<actual_operand_type_of_t<LeftMatrix>, actual_operand_type_of_t<RightMatrix>>;
 
-template<class Sub1, class Sub2, enable_if_matrix_t<Sub1>*, enable_if_matrix_t<Sub2>*>
-inline auto operator*(Sub1&& left, Sub2&& right) -> matrix_product_t<decltype(left), decltype(right)>
+template<class LeftMatrix, class RightMatrix,
+         enable_if_matrix_t<LeftMatrix>*, enable_if_matrix_t<RightMatrix>*>
+inline auto operator*(LeftMatrix&& left, RightMatrix&& right) -> matrix_product_t<decltype(left), decltype(right)>
 {
   cml::check_same_inner_size(left, right);
 
@@ -50,17 +51,14 @@ inline product_matrixRCf_r<Rows> multiply_matrix_float_fixed_row_order(LeftMatri
   float const* p_left_row   = left.data();
   float*       p_result_row = result.data();
 
-  std::array<__m128, Rows> right_cols;
-  for (int col = 0; col < right.cols(); ++col)
-  {
+  __m128 right_cols[Rows];
+  for (int col = 0; col < right.cols(); ++col) {
     right_cols[col] = _mm_loadu_ps(right.data() + col * right.rows());
   }
 
-  for (int row = 0; row < left.rows(); ++row, p_left_row += left.cols(), p_result_row += result.cols())
-  {
+  for (int row = 0; row < left.rows(); ++row, p_left_row += left.cols(), p_result_row += result.cols()) {
     __m128 res_row = _mm_setzero_ps();
-    for (int col = 0; col < left.cols(); ++col)
-    {
+    for (int col = 0; col < left.cols(); ++col) {
       __m128 left_element = _mm_set1_ps(p_left_row[col]);
       res_row  = _mm_add_ps(res_row, _mm_mul_ps(left_element, right_cols[col]));
     }
