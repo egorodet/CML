@@ -14,14 +14,15 @@
 
 namespace cml {
 
+template<class LeftMatrix, class RightMatrix>
+using matrix_product_t = matrix_inner_product_promote_t<actual_operand_type_of_t<LeftMatrix>, actual_operand_type_of_t<RightMatrix>>;
+
 /** Multiply two matrices, and return the result as a temporary. */
-template<class Sub1, class Sub2,
-  enable_if_matrix_t<Sub1>* = nullptr,
-  enable_if_matrix_t<Sub2>* = nullptr>
-auto operator*(Sub1&& sub1, Sub2&& sub2)
--> matrix_inner_product_promote_t<
-  actual_operand_type_of_t<decltype(sub1)>,
-  actual_operand_type_of_t<decltype(sub2)>>;
+template<class LeftMatrix, class RightMatrix,
+         enable_if_matrix_t<LeftMatrix>* = nullptr,
+         enable_if_matrix_t<RightMatrix>* = nullptr>
+auto operator*(LeftMatrix&& sub1, RightMatrix&& sub2)
+-> matrix_product_t<decltype(sub1), decltype(sub2)>;
 
 } // namespace cml
 

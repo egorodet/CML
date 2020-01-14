@@ -15,12 +15,24 @@
 
 namespace cml {
 
+template<class Test, class Reference>
+using is_same_t = typename std::enable_if<std::is_same<cml::unqualified_type_t<Test>, Reference>::value>::type;
+
+template<class Test, class Reference>
+using is_different_t = typename std::enable_if<!std::is_same<cml::unqualified_type_t<Test>, Reference>::value>::type;
+
 template<class LeftMatrix, class RightMatrix>
 using matrix_product_t = matrix_inner_product_promote_t<actual_operand_type_of_t<LeftMatrix>, actual_operand_type_of_t<RightMatrix>>;
 
+// General purpose matrix product implementation for all matrix types, except special matrix types with optimized implementation
+
 template<class LeftMatrix, class RightMatrix,
-         enable_if_matrix_t<LeftMatrix>*, enable_if_matrix_t<RightMatrix>*>
-inline auto operator*(LeftMatrix&& left, RightMatrix&& right) -> matrix_product_t<decltype(left), decltype(right)>
+         enable_if_matrix_t<LeftMatrix>* = nullptr,
+         enable_if_matrix_t<RightMatrix>* = nullptr,
+         is_different_t<LeftMatrix, matrix44f_r>* = nullptr,
+         is_different_t<RightMatrix, matrix44f_r>* = nullptr>
+inline auto matrix_product(LeftMatrix&& left, RightMatrix&& right)
+-> matrix_product_t<decltype(left), decltype(right)>
 {
   cml::check_same_inner_size(left, right);
 
@@ -36,22 +48,18 @@ inline auto operator*(LeftMatrix&& left, RightMatrix&& right) -> matrix_product_
   return M;
 }
 
-// SSE Optimized matrix product specialization for float fixed matrices with row major alignment and row basis
+// SSE optimized matrix product for float fixed matrices with row major alignment and row basis
 
-template<int Rows, int Cols>
-using matrixRCf_r = matrix<float, fixed<Rows, Cols>, row_basis, row_major>;
-
-template<int Dim>
-using product_matrixRCf_r = matrix<float, fixed<Dim, Dim>, row_basis, row_major>;
-
-template<int Rows, int Cols, class LeftMatrix = matrixRCf_r<Rows, Cols>, class RightMatrix = matrixRCf_r<Cols, Rows>>
-inline product_matrixRCf_r<Rows> multiply_matrix_float_fixed_row_order(LeftMatrix&& left, RightMatrix&& right)
+template<class LeftMatrix, class RightMatrix,
+         is_same_t<LeftMatrix, matrix44f_r>* = nullptr,
+         is_same_t<RightMatrix, matrix44f_r>* = nullptr>
+inline matrix44f_r matrix_product(LeftMatrix&& left, RightMatrix&& right)
 {
-  product_matrixRCf_r<Rows> result;
+  matrix44f_r  result;
   float const* p_left_row   = left.data();
   float*       p_result_row = result.data();
 
-  __m128 right_cols[Rows];
+  __m128 right_cols[4];
   for (int col = 0; col < right.cols(); ++col) {
     right_cols[col] = _mm_loadu_ps(right.data() + col * right.rows());
   }
@@ -68,46 +76,15 @@ inline product_matrixRCf_r<Rows> multiply_matrix_float_fixed_row_order(LeftMatri
   return result;
 }
 
-template<>
-inline matrix44f_r operator*<>(matrix44f_r&& left, matrix44f_r&& right)
-{
-    return multiply_matrix_float_fixed_row_order<4, 4>(left, right);
-}
+// Final matrix product template implementation
 
-template<>
-inline matrix44f_r operator*<>(matrix44f_r&& left, const matrix44f_r& right)
+template<class LeftMatrix, class RightMatrix,
+         enable_if_matrix_t<LeftMatrix>*,
+         enable_if_matrix_t<RightMatrix>*>
+inline auto operator*(LeftMatrix&& left, RightMatrix&& right)
+-> matrix_product_t<decltype(left), decltype(right)>
 {
-    return multiply_matrix_float_fixed_row_order<4, 4>(left, right);
-}
-
-template<>
-inline matrix44f_r operator*<>(matrix44f_r&& left, matrix44f_r& right)
-{
-    return multiply_matrix_float_fixed_row_order<4, 4>(left, right);
-}
-
-template<>
-inline matrix44f_r operator*<>(const matrix44f_r& left, const matrix44f_r& right)
-{
-    return multiply_matrix_float_fixed_row_order<4, 4>(left, right);
-}
-
-template<>
-inline matrix44f_r operator*<>(matrix44f_r& left, const matrix44f_r& right)
-{
-    return multiply_matrix_float_fixed_row_order<4, 4>(left, right);
-}
-
-template<>
-inline matrix44f_r operator*<>(const matrix44f_r& left, matrix44f_r& right)
-{
-    return multiply_matrix_float_fixed_row_order<4, 4>(left, right);
-}
-
-template<>
-inline matrix44f_r operator*<>(matrix44f_r& left, matrix44f_r& right)
-{
-    return multiply_matrix_float_fixed_row_order<4, 4>(left, right);
+  return matrix_product(left, right);
 }
 
 } // namespace cml
