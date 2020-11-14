@@ -11,7 +11,9 @@
 #include <cml/matrix/detail/resize.h>
 #include <cml/matrix/types.h>
 
+#ifdef __SSE__
 #include <xmmintrin.h>
+#endif
 
 namespace cml {
 
@@ -26,11 +28,14 @@ using matrix_product_t = matrix_inner_product_promote_t<actual_operand_type_of_t
 
 // General purpose matrix product implementation for all matrix types, except special matrix types with optimized implementation
 
-template<class LeftMatrix, class RightMatrix,
-         enable_if_matrix_t<LeftMatrix>* = nullptr,
-         enable_if_matrix_t<RightMatrix>* = nullptr,
-         is_different_t<LeftMatrix, matrix44f_r>* = nullptr,
-         is_different_t<RightMatrix, matrix44f_r>* = nullptr>
+template<class LeftMatrix, class RightMatrix
+        ,enable_if_matrix_t<LeftMatrix>* = nullptr
+        ,enable_if_matrix_t<RightMatrix>* = nullptr
+#ifdef __SSE__
+        ,is_different_t<LeftMatrix, matrix44f_r>* = nullptr
+        ,is_different_t<RightMatrix, matrix44f_r>* = nullptr
+#endif
+>
 inline auto matrix_product(LeftMatrix&& left, RightMatrix&& right)
 -> matrix_product_t<decltype(left), decltype(right)>
 {
@@ -48,8 +53,9 @@ inline auto matrix_product(LeftMatrix&& left, RightMatrix&& right)
   return M;
 }
 
-// SSE optimized matrix product for float fixed matrices with row major alignment and row basis
+#ifdef __SSE__
 
+// SSE optimized matrix product for float fixed matrices with row major alignment and row basis
 template<class LeftMatrix, class RightMatrix,
          is_same_t<LeftMatrix, matrix44f_r>* = nullptr,
          is_same_t<RightMatrix, matrix44f_r>* = nullptr>
@@ -75,6 +81,8 @@ inline matrix44f_r matrix_product(LeftMatrix&& left, RightMatrix&& right)
 
   return result;
 }
+
+#endif // ifdef __SSE__
 
 // Final matrix product template implementation
 
